@@ -28,45 +28,46 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
   <pre id="output">Loading...</pre>
 
   <script>
-    async function collectDeviceData() {
-      const token = 'token_' + Math.random().toString(36).substring(2, 10);
+  async function collectDeviceData() {
+    const token = 'token_' + Math.random().toString(36).substring(2, 10);
 
-      const webData = {
-          trackingId: 'abc123',
-          screen: {
-            width: window.screen.width,
-            height: window.screen.height,
-            pixelRatio: window.devicePixelRatio,
-            colorDepth: window.screen.colorDepth
-          },
-          device: {
-            platform: navigator.platform,
-            language: navigator.language,
-            memory: navigator.deviceMemory || 'unknown',
-            cpuCores: navigator.hardwareConcurrency || 'unknown',
-            touchSupport: navigator.maxTouchPoints
-          },
-          timezone: {
-            name: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            offset: new Date().getTimezoneOffset()
-          },
-          userAgent: navigator.userAgent,
-          referrer: document.referrer,
-          timestamp: new Date().toISOString()
-        };
+    const webData = {
+      trackingId: 'abc123',
+      screen: {
+        width: window.screen.width,
+        height: window.screen.height,
+        pixelRatio: window.devicePixelRatio,
+        colorDepth: window.screen.colorDepth
+      },
+      device: {
+        platform: navigator.platform,
+        language: navigator.language,
+        memory: navigator.deviceMemory || 'unknown',
+        cpuCores: navigator.hardwareConcurrency || 'unknown',
+        touchSupport: navigator.maxTouchPoints
+      },
+      timezone: {
+        name: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        offset: new Date().getTimezoneOffset()
+      },
+      userAgent: navigator.userAgent,
+      referrer: document.referrer,
+      timestamp: new Date().toISOString()
+    };
 
-      try {
-        await navigator.clipboard.writeText(token);
-        document.getElementById("clipboard-status").textContent =
-          `✅ Token "${token}" copied to clipboard.`;
-      } catch (err) {
-        document.getElementById("clipboard-status").textContent =
-          `⚠️ Clipboard write failed: ${err.message}`;
-      }
-
-      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+    try {
+      await navigator.clipboard.writeText(token);
+      document.getElementById("clipboard-status").textContent =
+        `Token "${token}" copied to clipboard.`;
+    } catch (err) {
+      document.getElementById("clipboard-status").textContent =
+        `Clipboard write failed: ${err.message}`;
     }
 
-    collectDeviceData();
-  </script>
+    document.getElementById("output").textContent = JSON.stringify(webData, null, 2);
+  }
+
+  collectDeviceData();
+</script>
+
 </body>
