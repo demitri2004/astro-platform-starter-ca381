@@ -11,11 +11,59 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
 `;
 ---
 
-<Layout title="Welcome to Astro.">
-    <ContextAlert class="mb-8" />
-    <h1 class="mb-10">Netlify Platform Starter for Astro</h1>
-    <Markdown content={explainer} class="mb-10 text-lg" />
-    <p>
-        <a href="https://docs.netlify.com/frameworks/astro/" class="btn btn-lg sm:min-w-64">Read the Docs</a>
-    </p>
-</Layout>
+<style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+    h1 { color: #333; }
+    pre { background: #fff; padding: 16px; border-radius: 8px; overflow-x: auto; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+    .token { margin-top: 10px; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+  <h1>📱 Device Info Capture</h1>
+  <p>This page captures device/browser data and stores a token in your clipboard.</p>
+
+  <div id="clipboard-status" class="token"></div>
+  <h2>Captured Data:</h2>
+  <pre id="output">Loading...</pre>
+
+  <script>
+    async function collectDeviceData() {
+      const token = 'token_' + Math.random().toString(36).substring(2, 10);
+
+      const data = {
+        token,
+        screen: {
+          width: window.screen.width,
+          height: window.screen.height,
+          pixelRatio: window.devicePixelRatio,
+          innerWidth: window.innerWidth,
+          innerHeight: window.innerHeight
+        },
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezoneOffset: new Date().getTimezoneOffset(),
+        deviceMemory: navigator.deviceMemory || 'n/a',
+        cpuCores: navigator.hardwareConcurrency || 'n/a',
+        maxTouchPoints: navigator.maxTouchPoints || 'n/a',
+        referrer: document.referrer || 'none',
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        await navigator.clipboard.writeText(token);
+        document.getElementById("clipboard-status").textContent =
+          `✅ Token "${token}" copied to clipboard.`;
+      } catch (err) {
+        document.getElementById("clipboard-status").textContent =
+          `⚠️ Clipboard write failed: ${err.message}`;
+      }
+
+      document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+    }
+
+    collectDeviceData();
+  </script>
+</body>
