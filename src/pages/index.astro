@@ -31,26 +31,29 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
     async function collectDeviceData() {
       const token = 'token_' + Math.random().toString(36).substring(2, 10);
 
-      const data = {
-        token,
-        screen: {
-          width: window.screen.width,
-          height: window.screen.height,
-          pixelRatio: window.devicePixelRatio,
-          innerWidth: window.innerWidth,
-          innerHeight: window.innerHeight
-        },
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        platform: navigator.platform,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        timezoneOffset: new Date().getTimezoneOffset(),
-        deviceMemory: navigator.deviceMemory || 'n/a',
-        cpuCores: navigator.hardwareConcurrency || 'n/a',
-        maxTouchPoints: navigator.maxTouchPoints || 'n/a',
-        referrer: document.referrer || 'none',
-        timestamp: new Date().toISOString()
-      };
+      const webData = {
+          trackingId: 'abc123',
+          screen: {
+            width: window.screen.width,
+            height: window.screen.height,
+            pixelRatio: window.devicePixelRatio,
+            colorDepth: window.screen.colorDepth
+          },
+          device: {
+            platform: navigator.platform,
+            language: navigator.language,
+            memory: navigator.deviceMemory || 'unknown',
+            cpuCores: navigator.hardwareConcurrency || 'unknown',
+            touchSupport: navigator.maxTouchPoints
+          },
+          timezone: {
+            name: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            offset: new Date().getTimezoneOffset()
+          },
+          userAgent: navigator.userAgent,
+          referrer: document.referrer,
+          timestamp: new Date().toISOString()
+        };
 
       try {
         await navigator.clipboard.writeText(token);
