@@ -32,7 +32,7 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
     const token = 'token_' + Math.random().toString(36).substring(2, 10);
 
     const webData = {
-      trackingId: 'abc123',
+      trackingId: token,
       screen: {
         width: window.screen.width,
         height: window.screen.height,
@@ -65,9 +65,26 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
     }
 
     document.getElementById("output").textContent = JSON.stringify(webData, null, 2);
+
+    try {
+      const res = await fetch('https://api.yourdomain.com/api/deferred-auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(webData)
+      });
+
+      const result = await res.json();
+      console.log('API response:', result);
+    } catch (err) {
+      console.error('Failed to send device data to backend:', err);
+    }
   }
 
   collectDeviceData();
 </script>
+
+
 
 </body>
