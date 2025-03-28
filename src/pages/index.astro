@@ -12,14 +12,13 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
 ---
 
 <style>
-    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-    h1 { color: #333; }
-    pre { background: #fff; padding: 16px; border-radius: 8px; overflow-x: auto; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
-    .token { margin-top: 10px; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; }
-  </style>
-</head>
-<body>
+  body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+  h1 { color: #333; }
+  pre { background: #fff; padding: 16px; border-radius: 8px; overflow-x: auto; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+  .token { margin-top: 10px; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; }
+</style>
 
+<body>
   <h1>📱 Device Info Capture</h1>
   <p>This page captures device/browser data and stores a token in your clipboard.</p>
 
@@ -28,68 +27,71 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
   <pre id="output">Loading...</pre>
 
   <script>
-  async function collectDeviceData() {
-    const token = 'token_' + Math.random().toString(36).substring(2, 10);
+    async function collectDeviceData() {
+      const token = 'token_' + Math.random().toString(36).substring(2, 10);
 
-    const deviceInfo = {
-      trackingId: token,
-      screen: {
-        width: window.screen.width,
-        height: window.screen.height,
-        pixelRatio: window.devicePixelRatio,
-        colorDepth: window.screen.colorDepth
-      },
-      device: {
-        platform: navigator.platform,
-        language: navigator.language,
-        model: 'unknown',          // updated via Capacitor in app
-        manufacturer: 'unknown',   // updated via Capacitor in app
-        operatingSystem: 'unknown',// updated via Capacitor in app
-        osVersion: 'unknown'       // updated via Capacitor in app
-      },
-      timezone: {
-        name: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        offset: new Date().getTimezoneOffset()
-      },
-      userAgent: navigator.userAgent,
-      referrer: document.referrer,
-      timestamp: new Date().toISOString(),
-      networkConnected: navigator.onLine,
-      connectionType: 'unknown', // Optional to fill via JS logic or leave blank
-      appName: 'ollomerrick',
-      appVersion: '1.0',
-      build: '1',
-      action : 'clear'
-    };
+      const deviceInfo = {
+        trackingId: token,
+        screen: {
+          width: window.screen.width,
+          height: window.screen.height,
+          pixelRatio: window.devicePixelRatio,
+          colorDepth: window.screen.colorDepth
+        },
+        device: {
+          platform: navigator.platform,
+          language: navigator.language,
+          model: 'unknown',
+          manufacturer: 'unknown',
+          operatingSystem: 'unknown',
+          osVersion: 'unknown'
+        },
+        timezone: {
+          name: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          offset: new Date().getTimezoneOffset()
+        },
+        userAgent: navigator.userAgent,
+        referrer: document.referrer,
+        timestamp: new Date().toISOString(),
+        networkConnected: navigator.onLine,
+        connectionType: 'unknown',
+        appName: 'ollomerrick',
+        appVersion: '1.0',
+        build: '1',
+        action: 'clear'
+      };
 
-    // Display on screen
-    document.getElementById("output").textContent = JSON.stringify(deviceInfo, null, 2);
+      // Display on screen
+      document.getElementById("output").textContent = JSON.stringify(deviceInfo, null, 2);
 
-    // Write to clipboard
-    try {
-      await navigator.clipboard.writeText(token);
-      document.getElementById("clipboard-status").textContent =
-        `Token "${token}" copied to clipboard.`;
-    } catch (err) {
-      document.getElementById("clipboard-status").textContent =
-        `Clipboard write failed: ${err.message}`;
+      // Clipboard
+      try {
+        await navigator.clipboard.writeText(token);
+        document.getElementById("clipboard-status").textContent =
+          `Token "${token}" copied to clipboard.`;
+      } catch (err) {
+        document.getElementById("clipboard-status").textContent =
+          `Clipboard write failed: ${err.message}`;
+      }
+
+      // Send to API
+      await sendDeviceInfoToBackend({ DeviceInfo: deviceInfo });
     }
 
-    // Send wrapped in DeviceInfo key
-    async function sendDeviceInfoToBackend(deviceInfo) {
+    async function sendDeviceInfoToBackend(payload) {
       try {
         const response = await fetch('https://ollon.uat.cardweb.cardworks.com/x/RegisterDeviceRequest', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(deviceInfo)
+          body: JSON.stringify(payload)
         });
-    
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    
+
         const result = await response.json();
         console.log('Response from RegisterDeviceRequest:', result);
       } catch (err) {
@@ -97,11 +99,6 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
       }
     }
 
-
-  collectDeviceData();
-</script>
-
-
-
-
+    collectDeviceData();
+  </script>
 </body>
