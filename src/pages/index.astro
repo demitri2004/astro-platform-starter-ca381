@@ -31,7 +31,7 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
   async function collectDeviceData() {
     const token = 'token_' + Math.random().toString(36).substring(2, 10);
 
-    const webData = {
+    const deviceInfo = {
       trackingId: token,
       screen: {
         width: window.screen.width,
@@ -42,9 +42,10 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
       device: {
         platform: navigator.platform,
         language: navigator.language,
-        memory: navigator.deviceMemory || 'unknown',
-        cpuCores: navigator.hardwareConcurrency || 'unknown',
-        touchSupport: navigator.maxTouchPoints
+        model: 'unknown',          // updated via Capacitor in app
+        manufacturer: 'unknown',   // updated via Capacitor in app
+        operatingSystem: 'unknown',// updated via Capacitor in app
+        osVersion: 'unknown'       // updated via Capacitor in app
       },
       timezone: {
         name: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -52,9 +53,18 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
       },
       userAgent: navigator.userAgent,
       referrer: document.referrer,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      networkConnected: navigator.onLine,
+      connectionType: 'unknown', // Optional to fill via JS logic or leave blank
+      appName: 'ollomerrick',
+      appVersion: '1.0',
+      build: '1'
     };
 
+    // Display on screen
+    document.getElementById("output").textContent = JSON.stringify(deviceInfo, null, 2);
+
+    // Write to clipboard
     try {
       await navigator.clipboard.writeText(token);
       document.getElementById("clipboard-status").textContent =
@@ -64,15 +74,14 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
         `Clipboard write failed: ${err.message}`;
     }
 
-    document.getElementById("output").textContent = JSON.stringify(webData, null, 2);
-
+    // Send wrapped in DeviceInfo key
     try {
       const res = await fetch('https://api.yourdomain.com/api/deferred-auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(webData)
+        body: JSON.stringify({ DeviceInfo: deviceInfo })
       });
 
       const result = await res.json();
@@ -84,6 +93,7 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
 
   collectDeviceData();
 </script>
+
 
 
 
