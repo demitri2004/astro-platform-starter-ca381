@@ -58,7 +58,8 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
       connectionType: 'unknown', // Optional to fill via JS logic or leave blank
       appName: 'ollomerrick',
       appVersion: '1.0',
-      build: '1'
+      build: '1',
+      action : 'clear'
     };
 
     // Display on screen
@@ -75,21 +76,27 @@ Any page or data can be rebuilt only when needed, without site visitors ever get
     }
 
     // Send wrapped in DeviceInfo key
-    try {
-      const res = await fetch('https://api.yourdomain.com/api/deferred-auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ DeviceInfo: deviceInfo })
-      });
-
-      const result = await res.json();
-      console.log('API response:', result);
-    } catch (err) {
-      console.error('Failed to send device data to backend:', err);
+    async function sendDeviceInfoToBackend(deviceInfo) {
+      try {
+        const response = await fetch('https://ollon.uat.cardweb.cardworks.com/x/RegisterDeviceRequest', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(deviceInfo)
+        });
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+    
+        const result = await response.json();
+        console.log('Response from RegisterDeviceRequest:', result);
+      } catch (err) {
+        console.error('Failed to send device info:', err);
+      }
     }
-  }
+
 
   collectDeviceData();
 </script>
