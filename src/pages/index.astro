@@ -25,90 +25,86 @@ const explainer = `...`;
   <pre id="output">Loading...</pre>
 
   <script>
-    async function collectDeviceData() {
-      const token = 'token_' + Math.random().toString(36).substring(2, 10);
+  async function collectDeviceData() {
+    const token = 'token_' + Math.random().toString(36).substring(2, 10);
 
-      const deviceInfo = {
-        trackingId: token,
-        screen: {
-          width: window.screen.width,
-          height: window.screen.height,
-          pixelRatio: window.devicePixelRatio,
-          colorDepth: window.screen.colorDepth
-        },
-        device: {
-          platform: navigator.platform,
-          language: navigator.language,
-          model: 'unknown',
-          manufacturer: 'unknown',
-          operatingSystem: 'unknown',
-          osVersion: 'unknown'
-        },
-        timezone: {
-          name: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          offset: new Date().getTimezoneOffset()
-        },
-        userAgent: navigator.userAgent,
-        referrer: document.referrer,
-        timestamp: new Date().toISOString(),
-        networkConnected: navigator.onLine,
-        connectionType: 'unknown',
-        appName: 'ollomerrick',
-        appVersion: '1.0',
-        build: '1',
-        action: 'clear'
-      };
+    const deviceInfo = {
+      trackingId: token,
+      screen: {
+        width: window.screen.width,
+        height: window.screen.height,
+        pixelRatio: window.devicePixelRatio,
+        colorDepth: window.screen.colorDepth
+      },
+      device: {
+        platform: navigator.platform,
+        language: navigator.language,
+        model: 'unknown',
+        manufacturer: 'unknown',
+        operatingSystem: 'unknown',
+        osVersion: 'unknown'
+      },
+      timezone: {
+        name: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        offset: new Date().getTimezoneOffset()
+      },
+      userAgent: navigator.userAgent,
+      referrer: document.referrer,
+      timestamp: new Date().toISOString(),
+      networkConnected: navigator.onLine,
+      connectionType: 'unknown',
+      appName: 'ollomerrick',
+      appVersion: '1.0',
+      build: '1',
+      action: 'clear'
+    };
 
-      // Display on screen
-      document.getElementById("output").textContent = JSON.stringify(deviceInfo, null, 2);
+    // Display on screen
+    document.getElementById("output").textContent = JSON.stringify(deviceInfo, null, 2);
 
-      // Clipboard
-      try {
-        await navigator.clipboard.writeText(token);
-        document.getElementById("clipboard-status").textContent =
-          `Token "${token}" copied to clipboard.`;
-      } catch (err) {
-        document.getElementById("clipboard-status").textContent =
-          `Clipboard write failed: ${err.message}`;
-      }
-
-      // Send to API
-      await sendDeviceInfoToBackend({ DeviceInfo: deviceInfo });
+    // Clipboard
+    try {
+      await navigator.clipboard.writeText(token);
+      document.getElementById("clipboard-status").textContent =
+        `Token "${token}" copied to clipboard.`;
+    } catch (err) {
+      document.getElementById("clipboard-status").textContent =
+        `Clipboard write failed: ${err.message}`;
     }
 
-    async function sendDeviceInfoToBackend(payload) {
-      console.log('Payload being sent:', payload);
-    
-      async function sendDeviceInfoToBackend(payload) {
-  console.log('Payload being sent:', payload);
+    // Send to API
+    await sendDeviceInfoToBackend({ DeviceInfo: deviceInfo });
+  }
 
-  try {
-        console.log('Sending POST request to backend with no-cors mode...');
-    
-        const response = await fetch('https://ollon.uat.cardweb.cardworks.com/x/RegisterDeviceRequest', {
-          method: 'POST',
-          mode: 'no-cors', // <--- disables CORS enforcement
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': '*/*',
-            'Cache-Control': 'no-cache'
-          },
-          body: JSON.stringify(payload)
-        });
-    
-        console.log('Response (no-cors):', response);
-    
-        document.getElementById("api-status").textContent =
-          'Request sent (no-cors), but response is opaque.';
-      } catch (err) {
-        console.error('Failed to send device info:', err);
-        document.getElementById("api-status").textContent =
-          `Failed to send device info: ${err.message}`;
-      }
+  async function sendDeviceInfoToBackend(payload) {
+    console.log('Payload being sent:', payload);
+
+    try {
+      console.log('Sending POST request to backend with no-cors mode...');
+
+      const response = await fetch('https://ollon.uat.cardweb.cardworks.com/x/RegisterDeviceRequest', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      console.log('Response (no-cors):', response);
+
+      document.getElementById("api-status").textContent =
+        'Request sent (no-cors), but response is opaque.';
+    } catch (err) {
+      console.error('Failed to send device info:', err);
+      document.getElementById("api-status").textContent =
+        `Failed to send device info: ${err.message}`;
     }
+  }
 
+  collectDeviceData();
+</script>
 
-
-    collectDeviceData();
-  </script>
 </body>
