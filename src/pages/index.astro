@@ -12,106 +12,132 @@ const explainer = `...`;
   pre { background: #fff; padding: 16px; border-radius: 8px; overflow-x: auto; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
   .token { margin-top: 10px; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; }
   .status { margin-top: 10px; padding: 10px; background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 6px; }
+  .button-container { margin-top: 20px; }
+  button {
+    margin-right: 10px;
+    padding: 10px 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+  }
 </style>
 
 <body>
   <h1>📱 Device Info Capture</h1>
-  <p>This page captures device/browser data and stores a token in your clipboard.</p>
+  <p>This page captures device/browser data and allows manual API calls.</p>
+
+  <div class="button-container">
+    <button id="send-register">Send to RegisterDeviceRequest</button>
+    <button id="send-validate">Send to ValidateDeviceRequest</button>
+  </div>
 
   <div id="clipboard-status" class="token"></div>
   <div id="api-status" class="status"></div>
 
   <h2>Captured Data:</h2>
-  <pre id="output">Loading...</pre>
+  <pre id="output">Click a button to generate device info...</pre>
 
   <script>
-  async function collectDeviceData() {
-    const token = 'token_' + Math.random().toString(36).substring(2, 10);
+    function generateDeviceInfo() {
+      const token = 'token_' + Math.random().toString(36).substring(2, 10);
 
-    const deviceInfo = {
-      trackingId: token,
-      screen: {
-        width: window.screen.width,
-        height: window.screen.height,
-        pixelRatio: window.devicePixelRatio,
-        colorDepth: window.screen.colorDepth
-      },
-      device: {
-        platform: navigator.platform,
-        language: navigator.language,
-        model: 'unknown',
-        manufacturer: 'unknown',
-        operatingSystem: 'unknown',
-        osVersion: 'unknown'
-      },
-      timezone: {
-        name: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        offset: new Date().getTimezoneOffset()
-      },
-      userAgent: navigator.userAgent,
-      referrer: document.referrer,
-      timestamp: new Date().toISOString(),
-      networkConnected: navigator.onLine,
-      connectionType: 'unknown',
-      appName: 'ollomerrick',
-      appVersion: '1.0',
-      build: '1',
-      action: 'clear'
-    };
+      const deviceInfo = {
+        trackingId: token,
+        screen: {
+          width: window.screen.width,
+          height: window.screen.height,
+          pixelRatio: window.devicePixelRatio,
+          colorDepth: window.screen.colorDepth
+        },
+        device: {
+          platform: navigator.platform,
+          language: navigator.language,
+          model: 'unknown',
+          manufacturer: 'unknown',
+          operatingSystem: 'unknown',
+          osVersion: 'unknown'
+        },
+        timezone: {
+          name: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          offset: new Date().getTimezoneOffset()
+        },
+        userAgent: navigator.userAgent,
+        referrer: document.referrer,
+        timestamp: new Date().toISOString(),
+        networkConnected: navigator.onLine,
+        connectionType: 'unknown',
+        appName: 'ollomerrick',
+        appVersion: '1.0',
+        build: '1',
+        action: 'clear'
+      };
 
-    // Display on screen
-    document.getElementById("output").textContent = JSON.stringify(deviceInfo, null, 2);
+      // Update UI
+      document.getElementById("output").textContent = JSON.stringify(deviceInfo, null, 2);
 
-    // Clipboard
-    try {
-      await navigator.clipboard.writeText(token);
-      document.getElementById("clipboard-status").textContent =
-        `Token "${token}" copied to clipboard.`;
-    } catch (err) {
-      document.getElementById("clipboard-status").textContent =
-        `Clipboard write failed: ${err.message}`;
+      // Copy token to clipboard
+      navigator.clipboard.writeText(token)
+        .then(() => {
+          document.getElementById("clipboard-status").textContent =
+            `Token "${token}" copied to clipboard.`;
+        })
+        .catch(err => {
+          document.getElementById("clipboard-status").textContent =
+            `Clipboard write failed: ${err.message}`;
+        });
+
+      return deviceInfo;
     }
 
-    // Send to API
-    await sendDeviceInfoToBackend({ DeviceInfo: deviceInfo });
-  }
+    async function sendToEndpoint(endpoint, payloadKey, deviceInfo) {
+      const payload = {
+        targetEndpoint: endpoint
+      };
+      payload[payloadKey] = deviceInfo;
 
-  async function sendDeviceInfoToBackend(payload) {
-  console.log('Payload being sent:', payload);
+      console.log('Sending to:', endpoint, payload);
 
-  try {
-    console.log('Sending POST request to Netlify proxy...');
+      try {
+        const response = await fetch('/.netlify/functions/proxy', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': '*/*',
+            'Cache-Control': 'no-cache'
+          },
+          body: JSON.stringify(payload)
+        });
 
-    const response = await fetch('/.netlify/functions/proxy', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': '*/*',
-        'Cache-Control': 'no-cache'
-      },
-      body: JSON.stringify(payload)
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.warn('Proxy returned an error response:', errorText);
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.text();
+        console.log('Response from proxy:', result);
+
+        document.getElementById("api-status").textContent =
+          `Request to ${endpoint} succeeded.`;
+      } catch (err) {
+        console.error('Request failed:', err);
+        document.getElementById("api-status").textContent =
+          `Request to ${endpoint} failed: ${err.message}`;
+      }
+    }
+
+    document.getElementById('send-register').addEventListener('click', () => {
+      const deviceInfo = generateDeviceInfo();
+      sendToEndpoint('/x/RegisterDeviceRequest', 'DeviceInfo', deviceInfo);
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.warn('Proxy returned an error response:', errorText);
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const result = await response.text(); // or response.json() if your backend returns JSON
-    console.log('Response from Netlify proxy:', result);
-
-    document.getElementById("api-status").textContent =
-      'Device info sent successfully.';
-  } catch (err) {
-    console.error('Failed to send device info:', err);
-    document.getElementById("api-status").textContent =
-      `Failed to send device info: ${err.message}`;
-  }
-}
-
-
-  collectDeviceData();
-</script>
-
+    document.getElementById('send-validate').addEventListener('click', () => {
+      const deviceInfo = generateDeviceInfo();
+      sendToEndpoint('/x/ValidateDeviceRequest', 'DeviceInfo', deviceInfo);
+    });
+  </script>
 </body>
+
