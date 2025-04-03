@@ -92,16 +92,14 @@ const explainer = `...`;
       return deviceInfo;
     }
 
-    async function sendToEndpoint(endpoint, payloadKey, deviceInfo) {
-      const payload = {
-        targetEndpoint: endpoint
-      };
+    async function sendToEndpoint(endpointUrl, payloadKey, deviceInfo) {
+      const payload = {};
       payload[payloadKey] = deviceInfo;
 
-      console.log('Sending to:', endpoint, payload);
+      console.log('Sending to:', endpointUrl, payload);
 
       try {
-        const response = await fetch('/.netlify/functions/proxy', {
+        const response = await fetch(endpointUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -113,31 +111,30 @@ const explainer = `...`;
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.warn('Proxy returned an error response:', errorText);
+          console.warn('Backend returned an error:', errorText);
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const result = await response.text();
-        console.log('Response from proxy:', result);
+        console.log('Response from backend:', result);
 
         document.getElementById("api-status").textContent =
-          `Request to ${endpoint} succeeded.`;
+          `Request to ${endpointUrl} succeeded.`;
       } catch (err) {
         console.error('Request failed:', err);
         document.getElementById("api-status").textContent =
-          `Request to ${endpoint} failed: ${err.message}`;
+          `Request to ${endpointUrl} failed: ${err.message}`;
       }
     }
 
     document.getElementById('send-register').addEventListener('click', () => {
       const deviceInfo = generateDeviceInfo();
-      sendToEndpoint('/x/RegisterDeviceRequest', 'DeviceInfo', deviceInfo);
+      sendToEndpoint('https://ollon.uat.cardweb.cardworks.com/x/RegisterDeviceRequest', 'DeviceInfo', deviceInfo);
     });
 
     document.getElementById('send-validate').addEventListener('click', () => {
       const deviceInfo = generateDeviceInfo();
-      sendToEndpoint('/x/ValidateDeviceRequest', 'DeviceInfo', deviceInfo);
+      sendToEndpoint('https://ollon.uat.cardweb.cardworks.com/x/ValidateDeviceRequest', 'DeviceInfo', deviceInfo);
     });
   </script>
 </body>
-
