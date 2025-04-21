@@ -63,9 +63,9 @@ import Layout from '../layouts/Layout.astro';
         timestamp: new Date().toISOString(),
         networkConnected: navigator.onLine,
         connectionType: navigator.connection?.effectiveType || 'unknown',
-        appName: 'ollomerrick',
-        appVersion: '1.0',
-        build: '1'
+        appName: '',
+        appVersion: '',
+        build: ''
       };
 
       document.getElementById("device-info").textContent =
