@@ -1,47 +1,36 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import ContextAlert from '../components/ContextAlert.astro';
-import Markdown from '../components/Markdown.astro';
-
-const explainer = `...`;
 ---
 
 <style>
-  body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-  h1 { color: #333; }
-  pre { background: #fff; padding: 16px; border-radius: 8px; overflow-x: auto; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
-  .token { margin-top: 10px; padding: 10px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; }
-  .status { margin-top: 10px; padding: 10px; background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 6px; }
-  .button-container { margin-top: 20px; }
-  button {
-    margin-right: 10px;
-    padding: 10px 16px;
-    font-size: 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    background-color: #007BFF;
-    color: white;
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+    background: #f4f4f4;
+  }
+
+  h1 {
+    color: #333;
+  }
+
+  pre {
+    background: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   }
 </style>
 
 <body>
-  <h1>📱 Device Info Capture</h1>
-  <p>This page captures device/browser data and allows manual API calls.</p>
-
-  <div class="button-container">
-    <button id="send-register">Send to RegisterDeviceRequest</button>
-    <button id="send-validate">Send to ValidateDeviceRequest</button>
-  </div>
-
-  <div id="clipboard-status" class="token"></div>
-  <div id="api-status" class="status"></div>
+  <h1>📱 Device Info</h1>
+  <p>This page automatically detects and displays your device/browser information.</p>
 
   <h2>Captured Data:</h2>
-  <pre id="output">Click a button to generate device info...</pre>
+  <pre id="device-info">Loading...</pre>
 
   <script>
-    function generateDeviceInfo() {
+    document.addEventListener('DOMContentLoaded', () => {
       const token = '0987654';
 
       const deviceInfo = {
@@ -71,70 +60,10 @@ const explainer = `...`;
         connectionType: 'unknown',
         appName: 'ollomerrick',
         appVersion: '1.0',
-        build: '1',
-        action: 'clear'
+        build: '1'
       };
 
-      // Update UI
-      document.getElementById("output").textContent = JSON.stringify(deviceInfo, null, 2);
-
-      // Copy token to clipboard
-      navigator.clipboard.writeText(token)
-        .then(() => {
-          document.getElementById("clipboard-status").textContent =
-            `Token "${token}" copied to clipboard.`;
-        })
-        .catch(err => {
-          document.getElementById("clipboard-status").textContent =
-            `Clipboard write failed: ${err.message}`;
-        });
-
-      return deviceInfo;
-    }
-
-    async function sendToEndpoint(endpointUrl, payloadKey, deviceInfo) {
-      const payload = {};
-      payload[payloadKey] = deviceInfo;
-
-      console.log('Sending to:', endpointUrl, payload);
-
-      try {
-        const response = await fetch(endpointUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': '*/*',
-            'Cache-Control': 'no-cache'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.warn('Backend returned an error:', errorText);
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.text();
-        console.log('Response from backend:', result);
-
-        document.getElementById("api-status").textContent =
-          `Request to ${endpointUrl} succeeded.`;
-      } catch (err) {
-        console.error('Request failed:', err);
-        document.getElementById("api-status").textContent =
-          `Request to ${endpointUrl} failed: ${err.message}`;
-      }
-    }
-
-    document.getElementById('send-register').addEventListener('click', () => {
-      const deviceInfo = generateDeviceInfo();
-      sendToEndpoint('https://ollon.uat.cardweb.cardworks.com/x/RegisterDeviceRequest', 'DeviceInfo', deviceInfo);
-    });
-
-    document.getElementById('send-validate').addEventListener('click', () => {
-      const deviceInfo = generateDeviceInfo();
-      sendToEndpoint('https://ollon.uat.cardweb.cardworks.com/x/ValidateDeviceRequest', 'DeviceInfo', deviceInfo);
+      document.getElementById("device-info").textContent = JSON.stringify(deviceInfo, null, 2);
     });
   </script>
 </body>
