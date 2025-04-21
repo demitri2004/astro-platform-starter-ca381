@@ -2,6 +2,9 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
+<!-- Load UAParser.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.2/ua-parser.min.js"></script>
+
 <style>
   body {
     font-family: sans-serif;
@@ -32,6 +35,8 @@ import Layout from '../layouts/Layout.astro';
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const token = '0987654';
+      const parser = new UAParser();
+      const parsed = parser.getResult();
 
       const deviceInfo = {
         trackingId: token,
@@ -44,10 +49,10 @@ import Layout from '../layouts/Layout.astro';
         device: {
           platform: navigator.platform,
           language: navigator.language,
-          model: 'unknown',
-          manufacturer: 'unknown',
-          operatingSystem: 'unknown',
-          osVersion: 'unknown'
+          model: parsed.device.model || 'unknown',
+          manufacturer: parsed.device.vendor || 'unknown',
+          operatingSystem: parsed.os.name || 'unknown',
+          osVersion: parsed.os.version || 'unknown'
         },
         timezone: {
           name: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -57,13 +62,14 @@ import Layout from '../layouts/Layout.astro';
         referrer: document.referrer,
         timestamp: new Date().toISOString(),
         networkConnected: navigator.onLine,
-        connectionType: 'unknown',
+        connectionType: navigator.connection?.effectiveType || 'unknown',
         appName: 'ollomerrick',
         appVersion: '1.0',
         build: '1'
       };
 
-      document.getElementById("device-info").textContent = JSON.stringify(deviceInfo, null, 2);
+      document.getElementById("device-info").textContent =
+        JSON.stringify(deviceInfo, null, 2);
     });
   </script>
 </body>
